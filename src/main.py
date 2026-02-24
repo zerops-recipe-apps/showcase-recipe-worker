@@ -76,6 +76,7 @@ async def process_upload(
 ):
     upload_id = event["id"]
     start_time = asyncio.get_event_loop().time()
+    pace = config.STEP_PACE_MS / 1000  # seconds between steps
 
     try:
         # Step 1: Mark as processing
@@ -98,6 +99,7 @@ async def process_upload(
             edge_labels={"worker-storage": f"GET complete ({dl_duration}ms)"})
 
         log.info("step.download_complete", id=upload_id, size=len(original_bytes), duration_ms=dl_duration)
+        await asyncio.sleep(pace)
 
         # Step 3: Generate thumbnail
         step_start = asyncio.get_event_loop().time()
@@ -116,6 +118,7 @@ async def process_upload(
             edge_labels={})
 
         log.info("step.thumbnail_complete", id=upload_id, size=len(thumbnail_bytes), duration_ms=thumb_duration)
+        await asyncio.sleep(pace)
 
         # Step 4: Generate resized version
         step_start = asyncio.get_event_loop().time()
@@ -129,6 +132,7 @@ async def process_upload(
         resize_duration = int((asyncio.get_event_loop().time() - step_start) * 1000)
 
         log.info("step.resize_complete", id=upload_id, size=len(resized_bytes), duration_ms=resize_duration)
+        await asyncio.sleep(pace)
 
         # Step 5: Extract metadata
         step_start = asyncio.get_event_loop().time()
@@ -142,6 +146,7 @@ async def process_upload(
         meta_duration = int((asyncio.get_event_loop().time() - step_start) * 1000)
 
         log.info("step.metadata_complete", id=upload_id, width=metadata["width"], height=metadata["height"], duration_ms=meta_duration)
+        await asyncio.sleep(pace)
 
         # Step 6: Upload processed files to Object Storage
         step_start = asyncio.get_event_loop().time()
@@ -158,6 +163,7 @@ async def process_upload(
         store_duration = int((asyncio.get_event_loop().time() - step_start) * 1000)
 
         log.info("step.store_complete", id=upload_id, duration_ms=store_duration)
+        await asyncio.sleep(pace)
 
         # Step 7: Update Postgres + Valkey
         step_start = asyncio.get_event_loop().time()

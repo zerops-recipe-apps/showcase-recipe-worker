@@ -38,5 +38,8 @@ class Config:
     RESIZED_MAX_DIMENSION = int(os.environ.get("RESIZED_MAX_DIMENSION", "1600"))
     PROCESSING_QUALITY = int(os.environ.get("PROCESSING_QUALITY", "85"))
 
+    # UX pacing — ms to pause between steps so users can follow the diagram
+    STEP_PACE_MS = int(os.environ.get("STEP_PACE_MS", "800"))
+
 
 config = Config()
