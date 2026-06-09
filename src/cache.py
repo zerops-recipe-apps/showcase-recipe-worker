@@ -8,12 +8,16 @@ log = structlog.get_logger()
 
 class Cache:
     def __init__(self):
-        self.client = redis.Redis(
+        kwargs = dict(
             host=config.VALKEY_HOST,
             port=config.VALKEY_PORT,
-            password=config.VALKEY_PASSWORD,
             decode_responses=True,
         )
+        # Valkey can be password-protected; authenticate as "default" when set.
+        if config.VALKEY_PASSWORD:
+            kwargs["username"] = "default"
+            kwargs["password"] = config.VALKEY_PASSWORD
+        self.client = redis.Redis(**kwargs)
 
     async def set_processed(self, upload_id: str, data: dict):
         await self.client.setex(f"upload:{upload_id}", 3600, json.dumps(data))

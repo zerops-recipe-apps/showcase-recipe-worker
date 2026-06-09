@@ -16,7 +16,8 @@ class Config:
     # Valkey
     VALKEY_HOST = os.environ.get("REDIS_HOST", os.environ.get("redis_hostname", "localhost"))
     VALKEY_PORT = int(os.environ.get("REDIS_PORT", os.environ.get("redis_port", "6379")))
-    VALKEY_PASSWORD = os.environ.get("redis_password", None)
+    # Valkey can be password-protected.
+    VALKEY_PASSWORD = os.environ.get("REDIS_PASSWORD") or None
 
     # NATS — prefer NATS_URL from zerops.yml, fallback to auto-injected connection string
     NATS_URL = os.environ.get(

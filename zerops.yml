@@ -18,6 +18,8 @@ zerops:
         DB_NAME: ${db_dbName}
         REDIS_HOST: ${redis_hostname}
         REDIS_PORT: ${redis_port}
+        # Valkey can be password-protected.
+        REDIS_PASSWORD: ${redis_password}
         NATS_URL: ${queue_connectionString}
         S3_ENDPOINT: ${storage_apiUrl}
         S3_ACCESS_KEY: ${storage_accessKeyId}
