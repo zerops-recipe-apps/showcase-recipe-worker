@@ -41,9 +41,11 @@ async def main():
 
     log.info("services.connected")
 
-    # Subscribe to uploaded events
-    sub = await nc.subscribe("pipeline.uploaded")
-    log.info("nats.subscribed", subject="pipeline.uploaded")
+    # Subscribe to uploaded events. The queue group makes NATS deliver each
+    # message to ONE worker container — without it, every container of an
+    # HA (multi-container) worker service processes every upload.
+    sub = await nc.subscribe("pipeline.uploaded", queue="pipeline-workers")
+    log.info("nats.subscribed", subject="pipeline.uploaded", queue="pipeline-workers")
 
     async for msg in sub.messages:
         try:
@@ -221,7 +223,11 @@ async def process_upload(
     except Exception as e:
         log.error("job.error", id=upload_id, error=str(e), exc_info=True)
         await publisher.publish_error(upload_id, str(e), "processing")
-        await db.update_error(upload_id, str(e))
+        try:
+            await db.update_error(upload_id, str(e))
+        except Exception as db_err:
+            # Don't let a failed error-write bubble up as a second, "unknown" failure.
+            log.error("job.error_persist_failed", id=upload_id, error=str(db_err))
 
 
 if __name__ == "__main__":
